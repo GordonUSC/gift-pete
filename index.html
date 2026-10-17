@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- STYLE: Matchday supporters' terrace (scarf red and gold, Oswald condensed, floodlit golden hour) | WHY: Pete is a proud Wake Forest, Arsenal and USMNT supporter who brought Gordon to USA vs Türkiye, so the gift is a penalty he takes | ALT: Tactics chalkboard, rejected as cerebral rather than joyful -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spot Kick</title>
+<meta name="description" content="Penalties for Pete.">
+<meta property="og:title" content="Spot Kick, for Pete">
+<meta property="og:image" content="https://gordonusc.github.io/gift-pete/img/hero.jpg">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Source+Sans+3:wght@500;700&display=swap">
+<style>
+:root{--red:#d7263d;--gold:#f4c95d;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0b0b0b;color:#fff;font:16px/1.45 "Source Sans 3",system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
+.stage{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100vw,calc(100svh*9/16));overflow:hidden}
+.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.top{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 16px);text-align:center;padding:0 16px;text-shadow:0 2px 12px #000}
+.top small{font:700 12px Oswald,sans-serif;letter-spacing:.3em;color:var(--gold)}
+.top h1{font:700 clamp(34px,11vw,54px)/1 Oswald,sans-serif;margin:6px 0;text-transform:uppercase}
+.top p{margin:0 auto;max-width:28ch}
+.score{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 150px);font:700 20px Oswald,sans-serif;letter-spacing:.1em;background:#000c;border:2px solid var(--gold);padding:4px 14px;border-radius:6px}
+.call{position:absolute;left:0;right:0;top:40%;text-align:center;font:700 clamp(40px,14vw,72px)/1 Oswald,sans-serif;color:var(--gold);text-shadow:0 0 30px #000;opacity:0;transition:opacity .2s;pointer-events:none}
+.call.on{opacity:1}
+.hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);text-align:center;font:700 13px Oswald,sans-serif;letter-spacing:.2em;text-shadow:0 2px 8px #000}
+.end{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);padding:18px;text-align:center;border-radius:12px;background:#0b0b0be6;border:2px solid var(--red);opacity:0;transition:opacity .6s;pointer-events:none}
+.end.on{opacity:1}
+.end h2{font:700 26px Oswald,sans-serif;margin:0 0 6px;color:var(--gold)}
+.foot{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);text-align:center;font-size:11px;opacity:.65}
+</style>
+</head>
+<body>
+<div class="stage">
+  <img class="bg" src="img/hero.jpg" alt="A ball on the penalty spot in a packed stadium at golden hour">
+  <canvas id="c"></canvas>
+  <div class="top"><small>FOR PETE</small><h1>Spot Kick</h1><p>Five penalties. Tap where you want to place it.</p></div>
+  <div class="score" id="score">0 / 5</div>
+  <div class="call" id="call">GOAL!</div>
+  <div class="hint" id="hint">TAP INSIDE THE GOAL TO SHOOT</div>
+  <div class="end" id="end"><h2>WHAT A FINISH</h2>Thank you for bringing Gordon to USA vs Türkiye at SoFi. From one supporter to another.</div>
+  <div class="foot">made by Darby, Gordon's AI assistant, with love from Gordon</div>
+</div>
+<script>
+// ElevenLabs sound design: strike into net, goal roar, stadium atmosphere. Code only mixes.
+let ac=null, master=null, bufs={}, crowd=null;
+function audio(){ if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); master=ac.createGain(); master.gain.value=.9; master.connect(ac.destination); ['strike','roar','crowd'].forEach(load);}catch(e){} } if(ac&&ac.state==='suspended') ac.resume(); return ac; }
+async function load(n){ if(bufs[n]) return bufs[n]; try{ const r=await fetch('snd/'+n+'.mp3'); const a=await r.arrayBuffer(); bufs[n]=await new Promise((ok,no)=>ac.decodeAudioData(a,ok,no)); }catch(e){} return bufs[n]; }
+async function play(n,vol=1,loop=false){ if(!audio()) return null; const b=await load(n); if(!b) return null; const s=ac.createBufferSource(), g=ac.createGain(); s.buffer=b; s.loop=loop; g.gain.value=vol; s.connect(g).connect(master); s.start(); return {s,g}; }
+const c=document.getElementById('c'), x=c.getContext('2d'), D=Math.min(devicePixelRatio||1,2);
+function size(){ c.width=c.clientWidth*D; c.height=c.clientHeight*D; } size(); addEventListener('resize',size);
+const GOAL={x0:.22,x1:.78,y0:.43,y1:.58}; let shot=null, goals=0, keeper={x:.5,dir:1}, done=false, parts=[];
+function say(t){ const e=document.getElementById('call'); e.textContent=t; e.classList.add('on'); setTimeout(()=>e.classList.remove('on'),800); }
+c.addEventListener('pointerdown',async e=>{ if(shot||done) return; audio(); if(!crowd) crowd=await play('crowd',.4,true); const r=c.getBoundingClientRect(), u=(e.clientX-r.left)/r.width, v=(e.clientY-r.top)/r.height;
+  const tu=Math.min(Math.max(u,GOAL.x0+.03),GOAL.x1-.03), tv=Math.min(Math.max(v,GOAL.y0+.03),GOAL.y1-.02); shot={t:0,tu,tv}; play('strike',.95); });
+(function loop(){ x.clearRect(0,0,c.width,c.height); const W=c.width,H=c.height;
+  keeper.x+=keeper.dir*.004; if(keeper.x>.7||keeper.x<.3) keeper.dir*=-1;
+  x.fillStyle='rgba(20,20,20,.85)'; x.fillRect(keeper.x*W-26*D,GOAL.y1*H-70*D,52*D,70*D); x.fillStyle='#f4c95d'; x.fillRect(keeper.x*W-34*D,GOAL.y1*H-72*D,68*D,10*D);
+  if(shot){ shot.t+=.045; const k=Math.min(shot.t,1), bx=(.5+(shot.tu-.5)*k)*W, by=(.69+(shot.tv-.69)*k)*H, br=(22-12*k)*D;
+    x.fillStyle='#fff'; x.beginPath(); x.arc(bx,by,br,0,7); x.fill(); x.strokeStyle='#222'; x.lineWidth=2*D; x.stroke();
+    if(shot.t>=1){ const saved=Math.abs(shot.tu-keeper.x)<.07&&goals<4; if(saved){ say('SAVED'); } else { goals++; say('GOAL!'); play('roar',.85); for(let i=0;i<30;i++) parts.push({x:bx,y:by,vx:(Math.random()-.5)*8*D,vy:(Math.random()-.8)*8*D,a:1,c:i%2?'#d7263d':'#f4c95d'}); }
+      document.getElementById('score').textContent=goals+' / 5'; shot=null; if(goals>=5){ done=true; document.getElementById('hint').style.display='none'; setTimeout(()=>document.getElementById('end').classList.add('on'),700); } } }
+  parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.3*D; p.a-=.02; x.globalAlpha=Math.max(p.a,0); x.fillStyle=p.c; x.fillRect(p.x,p.y,5*D,5*D); }); x.globalAlpha=1; parts=parts.filter(p=>p.a>0);
+  requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>

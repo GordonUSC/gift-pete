@@ -1,0 +1,18 @@
+{
+ "img/hero.jpg": {
+  "tool": "higgsfield",
+  "prompt": "penalty spot in a packed stadium at golden hour (job 3a02899d) gpt_image_2_5"
+ },
+ "snd/strike.mp3": {
+  "tool": "elevenlabs",
+  "prompt": "ball struck into the net (flow 8av4Ta0LwvgeXGMhvGYX)"
+ },
+ "snd/roar.mp3": {
+  "tool": "elevenlabs",
+  "prompt": "stadium goal roar (flow 8av4Ta0LwvgeXGMhvGYX)"
+ },
+ "snd/crowd.mp3": {
+  "tool": "elevenlabs",
+  "prompt": "stadium chanting loop (flow 8av4Ta0LwvgeXGMhvGYX)"
+ }
+}
